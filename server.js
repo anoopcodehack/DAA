@@ -14,7 +14,7 @@ const mongoose = require("mongoose");
 const { OAuth2Client } = require("google-auth-library");
 
 const app = express();
-const PORT = process.env.PORT || 5500;
+const PORT = process.env.PORT || 5000;
 
 // ---------- CONFIG ----------
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;       // same Client ID as frontend
@@ -33,10 +33,16 @@ app.use(
 );
 
 // ---------- MONGODB CONNECTION ----------
-mongoose
-  .connect(MONGODB_URI)
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err.message));
+if (!MONGODB_URI) {
+  console.warn(
+    "❌ MONGODB_URI not set — skipping MongoDB connection. Set MONGODB_URI in .env to enable DB."
+  );
+} else {
+  mongoose
+    .connect(MONGODB_URI)
+    .then(() => console.log("✅ MongoDB connected"))
+    .catch((err) => console.error("❌ MongoDB connection error:", err.message));
+}
 
 // ---------- USER SCHEMA ----------
 const userSchema = new mongoose.Schema({
