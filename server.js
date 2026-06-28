@@ -78,6 +78,7 @@ const User = mongoose.model("User", userSchema);
 app.post("/api/auth/google", async (req, res) => {
   try {
     const { credential } = req.body;
+    console.log("POST /api/auth/google — credential present:", !!credential);
 
     if (!credential) {
       return res.status(400).json({ success: false, message: "No credential provided" });
@@ -90,7 +91,11 @@ app.post("/api/auth/google", async (req, res) => {
     });
 
     const payload = ticket.getPayload();
-    const { sub: googleId, email, name, picture } = payload;
+    const { sub: googleId, email, name, picture } = payload || {};
+    console.log("Token payload:", {
+      googleId: googleId ? googleId.slice(-6) : null,
+      email: email ? `[${email.split("@")[0]}@...]` : null,
+    });
 
     // Upsert user — create if new, update login info if existing
     let user = await User.findOne({ googleId });
@@ -100,6 +105,7 @@ app.post("/api/auth/google", async (req, res) => {
       user.loginCount += 1;
       user.loginHistory.push(new Date());
       await user.save();
+      console.log("Updated user:", { googleId: googleId ? googleId.slice(-6) : null, email: user.email, loginCount: user.loginCount });
     } else {
       user = await User.create({
         googleId,
@@ -108,6 +114,7 @@ app.post("/api/auth/google", async (req, res) => {
         picture,
         loginHistory: [new Date()],
       });
+      console.log("Created user:", { googleId: googleId ? googleId.slice(-6) : null, email: user.email });
     }
 
     return res.json({
