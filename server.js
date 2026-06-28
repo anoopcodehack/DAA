@@ -3,8 +3,11 @@
 // Verifies Google ID token + saves every login to MongoDB
 // ============================================================
 
+const path = require("path");
 try {
-  require("dotenv").config();
+  const envPath = path.join(__dirname, ".env");
+  require("dotenv").config({ path: envPath });
+  console.log("Loaded .env from", envPath);
 } catch (e) {
   console.warn("dotenv not installed — skipping .env load");
 }
@@ -14,7 +17,17 @@ const mongoose = require("mongoose");
 const { OAuth2Client } = require("google-auth-library");
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5500;
+
+// Debug: indicate whether MONGODB_URI was loaded (do NOT print secrets)
+if (process.env.MONGODB_URI) {
+  const ok =
+    process.env.MONGODB_URI.startsWith("mongodb://") ||
+    process.env.MONGODB_URI.startsWith("mongodb+srv://");
+  console.log(`MONGODB_URI loaded: ${ok ? "looks valid" : "present but invalid scheme"}`);
+} else {
+  console.log("MONGODB_URI not found in environment");
+}
 
 // ---------- CONFIG ----------
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;       // same Client ID as frontend
