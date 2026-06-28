@@ -133,14 +133,3 @@ daa-viva-vault-login.html
 ```
 
 ---
-
-## 🔥 FINAL WORDS
-
-> "It's not just a cheat sheet. It's a *vault*."
-> — Anoop, probably, at 1 AM before the viva
-
-Built for **VTU CSE 2nd-year DAA Lab viva**. Lock it down, drop the link to absolutely no one, and go score **full full full**. 🏆
-
----
-
-**Made with 🔥 by Anoop (4SF23CS021) + Claude**
