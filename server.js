@@ -33,6 +33,7 @@ if (process.env.MONGODB_URI) {
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;       // same Client ID as frontend
 const MONGODB_URI = process.env.MONGODB_URI;                  // MongoDB Atlas connection string
 const ADMIN_KEY = process.env.ADMIN_KEY || "changeme123";      // simple key to view login logs
+console.log(`ADMIN_KEY: ${ADMIN_KEY === 'changeme123' ? 'default' : 'custom (hidden)'}`);
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "*").split(",");
 
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
@@ -155,4 +156,30 @@ app.get("/", (req, res) => {
 // ---------- START SERVER ----------
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+});
+
+// ----------------- DEV: create test user (no Google verification) -----------------
+// Use only in development to seed/test the DB.
+app.post("/__dev/create-user", async (req, res) => {
+  try {
+    const { googleId, email, name, picture } = req.body;
+    if (!googleId || !email) return res.status(400).json({ success: false, message: "googleId and email required" });
+
+    let user = await User.findOne({ googleId });
+    if (user) {
+      user.lastLoginAt = new Date();
+      user.loginCount += 1;
+      user.loginHistory.push(new Date());
+      await user.save();
+      console.log("DEV: updated user", { googleId: googleId.slice(-6), email: user.email });
+      return res.json({ success: true, action: "updated", user });
+    }
+
+    user = await User.create({ googleId, email, name, picture, loginHistory: [new Date()] });
+    console.log("DEV: created user", { googleId: googleId.slice(-6), email: user.email });
+    return res.json({ success: true, action: "created", user });
+  } catch (err) {
+    console.error("DEV create-user error:", err.message);
+    return res.status(500).json({ success: false, message: err.message });
+  }
 });
